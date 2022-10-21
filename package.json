@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/puppeteer": "^5.4.7",
     "fs": "^0.0.1-security",
     "puppeteer": "^19.0.0"
   },
