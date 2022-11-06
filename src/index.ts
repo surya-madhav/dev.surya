@@ -1,17 +1,21 @@
 import { banner } from "./introbanner";
+import { Data } from './data.interface';
+// import { addCheckBox, addText } from "./inner-html.helper";
 var fs = require('fs');
 const puppeteer = require('puppeteer')
-console.log(banner);
-let data = {
-    "mode-of-transaction-cash": { type: "checkbox", value: true },
-    "first-name": { type: "text", value: "Rebbapragada" },
-    "middle-name": { type: "text", value: "Sai Surya" },
-    "last-name": { type: "text", value: "Madhav" },
-    "pin-code": { type: "text", value: "575030" },
-    "mobile-number": { type: "text", value: "9686397040" },
-    "mode-of-transaction-cheque": { type: "checkbox", value: false },
-    "mode-of-transaction-card": { type: "checkbox", value: true }
-}
+let args = process.argv
+let data = JSON.parse(args[3]);
+// console.log(banner);
+// let data: Data = {
+//     "mode-of-transaction-cash": { type: "checkbox", value: true },
+//     "first-name": { type: "text", value: "Rebbapragada" },
+//     "middle-name": { type: "text", value: "Sai Surya" },
+//     "last-name": { type: "text", value: "Madhav" },
+//     "pin-code": { type: "text", value: "575030" },
+//     "mobile-number": { type: "text", value: "9686397040" },
+//     "mode-of-transaction-cheque": { type: "checkbox", value: false },
+//     "mode-of-transaction-card": { type: "checkbox", value: true }
+// }
 async function generatePdf(data:any, template:string) {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -25,13 +29,24 @@ async function generatePdf(data:any, template:string) {
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
     await page.emulateMediaType('print');
     await page.waitForSelector("#page-container");
-    await page.evaluate((data: any) => {
+    await page.evaluate((data: Data) => {
+        function addText(element:HTMLElement,value:string){
+            element.innerHTML = value;
+        }
+        function addCheckBox(element: HTMLElement,value:boolean){
+            element.style.opacity = value?"100%":"0";
+        }
         let dom = document.querySelectorAll('.kaldata');
         for (let index = 0; index < dom.length; index++) {
             const element = dom[index];
             if (document.querySelector("#" + element.id)) {
                 let qs = document.querySelector("#" + element.id) as HTMLElement;
-                qs.innerHTML = data[element.id]["value"];
+                const d = data[element.id];
+                if(d.type=="text"){
+                    addText(qs ,d.value  as string);
+                }else if(data[element.id].type=="checkbox"){
+                    addCheckBox(qs,d.value as boolean);
+                }
             }
         }
     }, data);
